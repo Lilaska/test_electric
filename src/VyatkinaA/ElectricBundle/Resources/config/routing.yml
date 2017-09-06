@@ -1,0 +1,3 @@
+vyatkina_a_electric_homepage:
+    path:     /
+    defaults: { _controller: VyatkinaAElectricBundle:Default:index }

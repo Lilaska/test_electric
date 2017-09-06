@@ -1,0 +1,9 @@
+vyatkina_a_electric:
+    resource: "@VyatkinaAElectricBundle/Resources/config/routing.yml"
+    prefix:   /
+
+
+
+
+
+

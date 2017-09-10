@@ -16,3 +16,8 @@ vyatkina_a_electric_save:
     path:     /save
     defaults: { _controller: VyatkinaAElectricBundle:Default:save }
     methods: [POST]
+
+vyatkina_a_electric_best:
+    path:     /best
+    defaults: { _controller: VyatkinaAElectricBundle:Default:best }
+    methods: [POST, GET]

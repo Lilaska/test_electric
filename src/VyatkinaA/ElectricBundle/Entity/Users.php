@@ -3,6 +3,7 @@
 namespace VyatkinaA\ElectricBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Users
@@ -27,6 +28,24 @@ class Users
      * @ORM\Column(name="username", type="string", length=500)
      */
     private $username;
+
+    /**
+     * @ORM\OneToMany(targetEntity="VyatkinaA\ElectricBundle\Entity\Results", mappedBy="userId")
+     */
+    private $results;
+
+    public function __construct()
+    {
+        $this->results = new ArrayCollection();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getResults()
+    {
+        return $this->results;
+    }
 
 
     /**

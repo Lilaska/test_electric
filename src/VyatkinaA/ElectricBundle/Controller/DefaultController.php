@@ -65,34 +65,46 @@ class DefaultController extends Controller
 
     public function jokerAction(Request $request){
         if($request != null && $request->request->get('fields_on')) {
-            if (function () {
-                return rand(1, 100) < 5;
-            }
-            ) {
+            if (rand(1, 100) < 5) {
                 $fields_on = $request->request->get('fields_on');
                 $rand_key = array_rand($request->request->get('fields_on'), 1);
                 $joker = $fields_on[$rand_key];
 
-            }
             return new JsonResponse(['answer' => true, 'joker' => $joker]);
+            }
         }
         return new JsonResponse(['answer' => false]);
     }
 
     public function saveAction(Request $request){
+        $step = $request->request->get('step');
         if($request != null && $request->request->get('username')) {
-            $em = $this->getDoctrine()->getManager();
             $user = new Users();
-            $result = new Results();
             $user->setUsername($request->request->get('username'));
+
+            $result = new Results();
+            $result->setResult($step);
+            $result->setUserId($user);
+
+            $em = $this->getDoctrine()->getManager();
             $em->persist($user);
-            $em->flush();
-            $result->setUserId($user->getId());
-            $result->setResult($request->request->get('step'));
             $em->persist($result);
             $em->flush();
             return new JsonResponse(['answer' => true]);
+        }else{
+            return $this->render('VyatkinaAElectricBundle:Default:save.html.twig',
+                ['step' => $step]);
         }
         return new JsonResponse(['answer' => false]);
     }
+
+    public function bestAction(){
+        $results = $this->getDoctrine()
+                ->getRepository(Results::class)
+                ->findBy([],['result' => 'ASC'], 10);
+
+
+        return $this->render('VyatkinaAElectricBundle:Default:best.html.twig',
+            ['results' => $results]);
+        }
 }

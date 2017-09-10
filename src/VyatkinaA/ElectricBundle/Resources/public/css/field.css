@@ -1,16 +1,21 @@
 .cell-field{
     border:5px;
     border-color: black;
-    width: 100px;
-    height:100px;
-    margin-top: 10px;
+    width: 80px;
+    height:80px;
+    margin-top: 2px;
+    margin-right: 5px;
     background-color:blue;
+    display: inline-block;
+    border-radius: 15%;
 }
 
 .cell-field.on{
     background-color:yellow;
 }
 
-.test{
-    background-color:red;
+.field{
+    background-color:grey;
+    text-align: center;
+
 }

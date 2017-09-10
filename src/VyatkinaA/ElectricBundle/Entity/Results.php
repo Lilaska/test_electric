@@ -24,8 +24,9 @@ class Results
     /**
      * @var int
      *
-     * @ORM\Column(name="user_id", type="integer")
-     * @ORM\ManyToOne(targetEntity="VyatkinaA/ElectricBundle/Entity/Users")
+     *
+     * @ORM\ManyToOne(targetEntity="VyatkinaA\ElectricBundle\Entity\Users", inversedBy="results")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
      */
     private $userId;
 
@@ -35,6 +36,18 @@ class Results
      * @ORM\Column(name="result", type="integer")
      */
     private $result;
+
+    private $username;
+
+    /**
+     * @return mixed
+     */
+    public function getUsername()
+    {
+
+        return $this->userId->getUsername();
+    }
+
 
 
     /**

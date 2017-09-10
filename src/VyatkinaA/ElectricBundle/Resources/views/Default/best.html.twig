@@ -1,0 +1,11 @@
+<div class="container-fluid best">
+
+
+{% for result in results %}
+<div class="row">
+   <div class="col-md-1">{{ loop.index }}</div>
+   <div class="col-md-7">{{ result.username }}</div>
+   <div class="col-md-4">{{ result.result }}</div>
+</div>
+{% endfor %}
+</div>

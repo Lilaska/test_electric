@@ -1,0 +1,16 @@
+.cell-field{
+    border:5px;
+    border-color: black;
+    width: 100px;
+    height:100px;
+    margin-top: 10px;
+    background-color:blue;
+}
+
+.cell-field.on{
+    background-color:yellow;
+}
+
+.test{
+    background-color:red;
+}

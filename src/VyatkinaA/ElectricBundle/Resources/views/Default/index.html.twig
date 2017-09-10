@@ -1,2 +1,24 @@
-Hello World!
+{% extends 'base.html.twig' %}
+{% block stylesheets %}
+    {{ parent() }}
+{% stylesheets  "@VyatkinaAElectricBundle/Resources/public/css/field.css" %}
+    <link href="{{ asset_url }}" rel="stylesheet" />
+    {% endstylesheets %}
+{% endblock %}
+{%  block javascripts %}
+    {{ parent() }}
+    {% javascripts '@VyatkinaAElectricBundle/Resources/public/js/light.js' %}
+    <script type="text/javascript" src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+{% endblock %}
+
+{% block body %}
+    {{ parent() }}
+    <div class="row">
+       <div class="col-lg-4 col-lg-offset-4">
+           <p class="test">Hello World!</p>
+
+       </div>
+    </div>
 {% include('@VyatkinaAElectric/Default/field.html.twig') %}
+{% endblock %}

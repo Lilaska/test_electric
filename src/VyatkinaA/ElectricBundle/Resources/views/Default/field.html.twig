@@ -1,0 +1,12 @@
+
+{% for i in 1..5 %}
+    <div class="row">
+        {% for k in 1..5 %}
+            <div class="col-lg-1">
+                <div id="{{ i }}{{ k }}" class="cell-field"></div>
+            </div>
+            {% endfor %}
+    </div>
+{% endfor %}
+
+<div class="counter">0</div>

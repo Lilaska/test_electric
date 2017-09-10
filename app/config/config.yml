@@ -72,6 +72,7 @@ swiftmailer:
 assetic:
     debug:          "%kernel.debug%"
     use_controller: false
+#    write_to: "%kernel.project_dir%/web/bundles"
 
     filters:
         cssrewrite: ~

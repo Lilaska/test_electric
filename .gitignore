@@ -19,3 +19,4 @@
 .idea/shelf/
 .idea/workspace.xml
 /phpunit.xml.dist
+var/

@@ -1,0 +1,14 @@
+<div class="counter">
+<input type="hidden" name="counter" value="{{ current_step }}">
+    <div class="col-lg-12">
+        {% for step in counter %}
+            <div class="number n{{ step }}">
+                <div class="top square">
+                    <div class="bottom square"> </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+
+</div>

@@ -4,6 +4,9 @@
 {% stylesheets  "@VyatkinaAElectricBundle/Resources/public/css/field.css" %}
     <link href="{{ asset_url }}" rel="stylesheet" />
     {% endstylesheets %}
+    {% stylesheets  "@VyatkinaAElectricBundle/Resources/public/css/counter.css" %}
+    <link href="{{ asset_url }}" rel="stylesheet" />
+    {% endstylesheets %}
 {% endblock %}
 {%  block javascripts %}
     {{ parent() }}
@@ -16,8 +19,8 @@
     {% include('@VyatkinaAElectric/Default/modal.html.twig') %}
     {{ parent() }}
     <div class="row">
-       <div class="col-lg-4 col-lg-offset-4">
-           <p class="test">Hello World!</p>
+       <div class="col-lg-4 col-lg-offset-5">
+           <h1 class="test">Electric game</h1>
 
        </div>
     </div>
@@ -28,8 +31,9 @@
         <div class="col-lg-4">
                 {% include('@VyatkinaAElectric/Default/field.html.twig') %}
         </div>
-        <div class="col-lg-4">
-            <div class="counter">0</div>
+        <div class="col-lg-4 counter_place">
+            {% include('@VyatkinaAElectric/Default/counter.html.twig') %}
+
         </div>
     </div>
 

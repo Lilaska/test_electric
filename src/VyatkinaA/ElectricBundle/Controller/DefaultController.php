@@ -13,16 +13,21 @@ class DefaultController extends Controller
 {
     public function indexAction()
     {
-        return $this->render('VyatkinaAElectricBundle:Default:index.html.twig');
+        return $this->render('VyatkinaAElectricBundle:Default:index.html.twig',['counter'=>[0,0,0,0,0], 'current_step' => 0]);
     }
 
     public function checkAction(Request $request){
         if($request != null && $request->request->get('id')){
             $id = $request->request->get('id');
             $arrData = $this->calcFieldAction($id);
-            $step = $request->request->get('step') + 1;
+            $step = $request->request->get('step')+1;
+            $counter = array_pad(str_split($step), -5, 0);
+            $counter_template = $this->renderView('VyatkinaAElectricBundle:Default:counter.html.twig',[
+                'counter' => $counter,
+                'current_step' => $step
+            ]);
 
-        return new JsonResponse(['fields' => $arrData, 'step' => $step]);
+        return new JsonResponse(['fields' => $arrData, 'step' => $step, 'counter_template' => $counter_template]);
     }
         return $this->json(array('er' => 'er'));//todo add exception
     }
@@ -107,4 +112,6 @@ class DefaultController extends Controller
         return $this->render('VyatkinaAElectricBundle:Default:best.html.twig',
             ['results' => $results]);
         }
+
+
 }

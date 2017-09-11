@@ -6,12 +6,13 @@ $(document).ready(function()
     $('.cell-field').on('click', function () {
         var fields_on = [];
         var cell = $(this);
+        var step = $('input[name="counter"]').val();
         $.ajax({
             type: 'POST',
             url: 'check',
             data: {
                 'id': $(this).attr("id"),
-                'step': $('.counter').html(),
+                'step': step,
             },
             success: function (data) {
                 fire(data, cell);
@@ -38,12 +39,17 @@ $(document).ready(function()
         }
         ;
         $(cell).toggleClass('on');
-        $('.counter').html(data.step);
+        // $('input[name="counter"]').val(data.step)
+        updateCounter(data.counter_template);
+    }
+
+    function updateCounter(template) {
+        $('div.counter_place').html(template);
     }
 
     function is_win(fields_on) {
         if (fields_on.length == 25) {
-            var step = $('.counter').html();
+            var step = $('input[name="counter"]').val();
             var callback = function() {
                 var username = $('#name').val();
                 if (step > 0 && username != '') {

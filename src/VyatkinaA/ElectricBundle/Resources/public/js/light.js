@@ -3,7 +3,7 @@
  */
 $(document).ready(function()
 {
-    $('.cell-field').on('click', function () {
+    $('div.field_place').on('click', '.cell-field', function () {
         var fields_on = [];
         var cell = $(this);
         var step = $('input[name="counter"]').val();
@@ -29,9 +29,9 @@ $(document).ready(function()
         });
     });
 
-    $('#the_best').on('click', function () {
-        the_best();
-    });
+    $('#the_best').on('click', the_best);
+
+    $('#new_game').on('click', newGame);
 
     function fire(data, cell) {
         for (var i = 0; i < data.fields.length; i++) {
@@ -39,12 +39,25 @@ $(document).ready(function()
         }
         ;
         $(cell).toggleClass('on');
-        // $('input[name="counter"]').val(data.step)
         updateCounter(data.counter_template);
     }
 
     function updateCounter(template) {
         $('div.counter_place').html(template);
+    }
+
+    function newGame(){
+        $.ajax({
+            type: 'POST',
+            url: 'new',
+            // data: {'step': step, 'username': username},
+            success: function (data) {
+                $('div.counter_place').html(data.counter_template);
+                $('div.field_place').html(data.field_template);
+
+            },
+            dataType: "JSON"
+        })
     }
 
     function is_win(fields_on) {

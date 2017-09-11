@@ -20,4 +20,10 @@ vyatkina_a_electric_save:
 vyatkina_a_electric_best:
     path:     /best
     defaults: { _controller: VyatkinaAElectricBundle:Default:best }
-    methods: [POST, GET]
+    methods: [POST]
+
+vyatkina_a_electric_new:
+    path:     /new
+    defaults: { _controller: VyatkinaAElectricBundle:Default:new }
+    methods: [POST]
+

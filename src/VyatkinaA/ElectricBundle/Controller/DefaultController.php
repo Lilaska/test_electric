@@ -83,29 +83,35 @@ class DefaultController extends Controller
     }
 
     public function saveAction(Request $request){
+        $response = new JsonResponse();
+
         $step = $request->request->get('step');
         if($request != null && $request->request->get('username')) {
-            $user = new Users();
-            $user->setUsername($request->request->get('username'));
-
+            $em = $this->getDoctrine()->getManager();
+            if (!$request->cookies->has('user_data')) {
+                $user = new Users();
+                $user->setUsername($request->request->get('username'));
+                $em->persist($user);
+                $response->headers->setCookie(new Cookie('user_data', $user->getId()));
+            }else{
+                $user = $this->getDoctrine()
+                    ->getRepository(Users::class)
+                    ->find($request->cookies->get('user_data'));
+                if($user->getUsername() !== $request->request->get('username')){
+                    $user->setUsername($request->request->get('username'));
+                }
+            }
             $result = new Results();
             $result->setResult($step);
             $result->setUserId($user);
-
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($user);
             $em->persist($result);
             $em->flush();
-            $response = new JsonResponse(['answer' => true]);
-            $response->headers->setCookie(new Cookie('user_data', $user->getId()));
-            return $response;
+            $response->setContent(json_encode(['answer' => true]));
         }else{
-            $cookies = $request->cookies;
             $username = '';
-
-            if ($cookies->has('user_data'))
+            if ($request->cookies->has('user_data'))
             {
-                $user_id = $cookies->get('user_data');
+                $user_id = $request->cookies->get('user_data');
                 $user = $this->getDoctrine()
                     ->getRepository(Users::class)
                     ->find($user_id);
@@ -113,12 +119,11 @@ class DefaultController extends Controller
                     $username = $user->getUsername();
                 }
             }
-
             $template = $this->renderView('VyatkinaAElectricBundle:Default:save.html.twig',
                 ['step' => $step, 'username' => $username]);
-            return new JsonResponse(['answer' => true, 'save_template' => $template]);
+           $response->setContent(json_encode(['answer' => true, 'save_template' => $template]));
         }
-        return new JsonResponse(['answer' => false]);
+        return $response;
     }
 
     public function bestAction(){
@@ -129,6 +134,17 @@ class DefaultController extends Controller
 
         return $this->render('VyatkinaAElectricBundle:Default:best.html.twig',
             ['results' => $results]);
+        }
+
+        public function newAction(Request $request){
+
+            $counter_template = $this->renderView('VyatkinaAElectricBundle:Default:counter.html.twig',[
+                'counter' => [0,0,0,0,0],
+                'current_step' => 0
+            ]);
+            $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig');
+
+            return new JsonResponse(['field_template' => $field_template, 'counter_template' => $counter_template], Response::HTTP_OK);
         }
 
 

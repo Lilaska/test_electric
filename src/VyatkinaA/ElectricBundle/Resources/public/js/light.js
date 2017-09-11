@@ -78,9 +78,10 @@ $(document).ready(function()
             url: 'save',
             data: {'step' : step},
             success: function (data) {
-                showModal(data, 'You win!', 'Ok', clbk);
+                var save_form = data.save_template;
+                showModal(save_form, 'You win!', 'Ok', clbk);
             },
-            dataType: "HTML"
+            dataType: "JSON"
         });
     }
 
@@ -118,8 +119,6 @@ $(document).ready(function()
         if(typeof clbk == 'function'){
             $('#close_btn').on('click', clbk);
         }
-
-
         $('#the_best_of_the_best').modal('handleUpdate');
         $('#the_best_of_the_best').modal('show');
     }

@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use VyatkinaA\ElectricBundle\Entity\Results;
 use VyatkinaA\ElectricBundle\Entity\Users;
+use Symfony\Component\HttpFoundation\Cookie;
 
 class DefaultController extends Controller
 {
@@ -95,10 +96,27 @@ class DefaultController extends Controller
             $em->persist($user);
             $em->persist($result);
             $em->flush();
-            return new JsonResponse(['answer' => true]);
+            $response = new JsonResponse(['answer' => true]);
+            $response->headers->setCookie(new Cookie('user_data', $user->getId()));
+            return $response;
         }else{
-            return $this->render('VyatkinaAElectricBundle:Default:save.html.twig',
-                ['step' => $step]);
+            $cookies = $request->cookies;
+            $username = '';
+
+            if ($cookies->has('user_data'))
+            {
+                $user_id = $cookies->get('user_data');
+                $user = $this->getDoctrine()
+                    ->getRepository(Users::class)
+                    ->find($user_id);
+                if($user){
+                    $username = $user->getUsername();
+                }
+            }
+
+            $template = $this->renderView('VyatkinaAElectricBundle:Default:save.html.twig',
+                ['step' => $step, 'username' => $username]);
+            return new JsonResponse(['answer' => true, 'save_template' => $template]);
         }
         return new JsonResponse(['answer' => false]);
     }

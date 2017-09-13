@@ -12,9 +12,15 @@ use Symfony\Component\HttpFoundation\Cookie;
 
 class DefaultController extends Controller
 {
+    private $start_counter = [0,0,0,0,0];
+    private $start_step = 0;
+
     public function indexAction()
     {
-        return $this->render('VyatkinaAElectricBundle:Default:index.html.twig',['counter'=>[0,0,0,0,0], 'current_step' => 0]);
+        return $this->render('VyatkinaAElectricBundle:Default:index.html.twig',[
+            'counter'=> $this->start_counter,
+            'current_step' => $this->start_step]
+        );
     }
 
     public function checkAction(Request $request){
@@ -30,7 +36,7 @@ class DefaultController extends Controller
 
         return new JsonResponse(['fields' => $arrData, 'step' => $step, 'counter_template' => $counter_template]);
     }
-        return $this->json(array('er' => 'er'));//todo add exception
+        return new JsonResponse([], Response::HTTP_BAD_REQUEST );
     }
 
     private function calcFieldAction($id){
@@ -71,7 +77,7 @@ class DefaultController extends Controller
 
     public function jokerAction(Request $request){
         if($request != null && $request->request->get('fields_on')) {
-            if (rand(1, 100) < 5) {
+            if (rand(1, 25) == 1) {
                 $fields_on = $request->request->get('fields_on');
                 $rand_key = array_rand($request->request->get('fields_on'), 1);
                 $joker = $fields_on[$rand_key];
@@ -139,12 +145,15 @@ class DefaultController extends Controller
         public function newAction(Request $request){
 
             $counter_template = $this->renderView('VyatkinaAElectricBundle:Default:counter.html.twig',[
-                'counter' => [0,0,0,0,0],
-                'current_step' => 0
+                'counter' => $this->start_counter,
+                'current_step' => $this->start_step
             ]);
             $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig');
 
-            return new JsonResponse(['field_template' => $field_template, 'counter_template' => $counter_template], Response::HTTP_OK);
+            return new JsonResponse([
+                'field_template' => $field_template,
+                'counter_template' => $counter_template
+            ], Response::HTTP_OK);
         }
 
 

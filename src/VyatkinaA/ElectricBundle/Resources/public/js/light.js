@@ -7,26 +7,30 @@ $(document).ready(function()
         var fields_on = [];
         var cell = $(this);
         var step = $('input[name="counter"]').val();
-        $.ajax({
-            type: 'POST',
-            url: 'check',
-            data: {
-                'id': $(this).attr("id"),
-                'step': step,
-            },
-            success: function (data) {
-                fire(data, cell);
+        if(!$(cell).hasClass('on')) {
+            $.ajax({
+                type: 'POST',
+                url: 'check',
+                data: {
+                    'id': $(this).attr("id"),
+                    'step': step,
+                },
+                success: function (data) {
+                    fire(data, cell);
 
-                $('.cell-field.on').map(function (el, val) {
-                    fields_on.push(val.getAttribute('id'));
-                });
-                if (!is_win(fields_on)) {
-                    joker(fields_on);
-                }
+                    $('.cell-field.on').map(function (el, val) {
+                        fields_on.push(val.getAttribute('id'));
+                    });
+                    if (!is_win(fields_on)) {
+                        joker(fields_on);
+                    }
 
-            },
-            dataType: "JSON"
-        });
+                },
+                dataType: "JSON"
+            });
+        }else{
+            return false;
+        }
     });
 
     $('#the_best').on('click', the_best);
@@ -38,7 +42,7 @@ $(document).ready(function()
             $('#' + data.fields[i]).toggleClass('on');
         }
         ;
-        $(cell).toggleClass('on');
+        $(cell).addClass('on');
         updateCounter(data.counter_template);
     }
 

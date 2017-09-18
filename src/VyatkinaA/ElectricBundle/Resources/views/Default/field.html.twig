@@ -1,7 +1,7 @@
 <div class="field">
-    {% for i in 1..5 %}
+    {% for i in 1..field_size %}
         <div class="row">
-            {% for k in 1..5 %}
+            {% for k in 1..field_size %}
                 {%  set id = i ~ k %}
                 {% set class_on = '' %}
                 {% if fields_on is defined%}

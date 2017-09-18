@@ -12,19 +12,12 @@ $(document).ready(function()
                 type: 'POST',
                 url: 'check',
                 data: {
-                    'id': $(this).attr("id"),
-                    'step': step,
+                    'id': $(this).attr("id")
                 },
                 success: function (data) {
-                    fire(data, cell);
-
-                    $('.cell-field.on').map(function (el, val) {
-                        fields_on.push(val.getAttribute('id'));
-                    });
-                    if (!is_win(fields_on)) {
-                        joker(fields_on);
-                    }
-
+                    fire(data);
+                    if(data.is_win) is_win();
+                    if(data.joker) setTimeout(joker(data.joker), 3000);
                 },
                 dataType: "JSON"
             });
@@ -37,20 +30,20 @@ $(document).ready(function()
 
     $('#new_game').on('click', newGame);
 
-    function getFieldsOn() {
-
-    }
-
-    function fire(data, cell) {
-        for (var i = 0; i < data.fields.length; i++) {
-            $('#' + data.fields[i]).toggleClass('on');
-        }
-        $(cell).addClass('on');
+    function fire(data) {
+        updateField(data.field_template);
         updateCounter(data.counter_template);
     }
 
     function updateCounter(template) {
         $('div.counter_place').html(template);
+    }
+
+    function updateField(template) {
+        // for (var i = 0; i < data.fields.length; i++) {
+        //     $('#' + data.fields[i]).toggleClass('on');
+        // }
+        $('div.field_place').html(template);
     }
 
     function newGame(){
@@ -59,24 +52,22 @@ $(document).ready(function()
             url: 'new',
             // data: {'step': step, 'username': username},
             success: function (data) {
-                $('div.counter_place').html(data.counter_template);
-                $('div.field_place').html(data.field_template);
+                updateCounter(data.counter_template);
+                updateField(data.field_template);
 
             },
             dataType: "JSON"
         })
     }
 
-    function is_win(fields_on) {
-        if (fields_on.length == 25) {
-            var step = $('input[name="counter"]').val();
+    function is_win() {
             var callback = function() {
                 var username = $('#name').val();
-                if (step > 0 && username != '') {
+                if (username != '') {
                     $.ajax({
                             type: 'POST',
                             url: 'save',
-                            data: {'step': step, 'username': username},
+                            data: {'username': username},
                             success: function () {
                                 showModal('User saved successfully', 'Save');
                             },
@@ -84,19 +75,15 @@ $(document).ready(function()
                         }
                     )
                 }
-            }
-            getSaveModal(step, callback);
+            };
+            getSaveModal(callback);
             return true;
-        } else {
-            return false;
-        }
     }
 
-    function getSaveModal(step, clbk){
+    function getSaveModal(clbk){
         $.ajax({
             type: 'POST',
             url: 'save',
-            data: {'step' : step},
             success: function (data) {
                 var save_form = data.save_template;
                 showModal(save_form, 'You win!', 'Ok', clbk);
@@ -105,20 +92,8 @@ $(document).ready(function()
         });
     }
 
-    function joker(fields_on) {
-        $.ajax({
-            type: 'POST',
-            url: 'joker',
-            data: {
-                'fields_on': fields_on
-            },
-            success: function (data) {
-                if (data.answer) {
-                    $('#' + data.joker).removeClass('on');
-                }
-            },
-            dataType: "JSON"
-        });
+    function joker(joker) {
+        $('#' + joker).removeClass('on');
     }
 
     function the_best() {

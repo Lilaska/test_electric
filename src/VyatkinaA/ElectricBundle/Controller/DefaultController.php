@@ -10,6 +10,7 @@ use VyatkinaA\ElectricBundle\Entity\Results;
 use VyatkinaA\ElectricBundle\Entity\Steps;
 use VyatkinaA\ElectricBundle\Entity\Users;
 use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class DefaultController extends Controller
 {
@@ -49,11 +50,12 @@ class DefaultController extends Controller
             return $this->render('VyatkinaAElectricBundle:Default:index.html.twig', [
                     'counter' => $counter,
                     'current_step' => $step,
-                    'fields_on' => $fields_on
+                    'fields_on' => $fields_on,
+                    'field_size' => $this->field_size
                 ]
             );
         }catch (\Exception $ex){
-            return new \HttpException($ex->getMessage(), $ex->getCode());
+            throw new HttpException($ex->getMessage(), $ex->getCode() ?? 500);
         }
     }
 
@@ -62,19 +64,15 @@ class DefaultController extends Controller
         if ($request->isXmlHttpRequest()) {
         try {
             $response = new JsonResponse();
+            $is_win = false;
+            $joker = false;
 
-            if ($request->request->get('id')) {
+            if ($request->request->has('id')) {
                 $id = $request->request->get('id');
                 $arrData = $this->calcFieldAction($id);
-                $step = $request->request->get('step') + 1;
-                $counter = array_pad(str_split($step), -$this->counter_size, 0);
-                $counter_template = $this->renderView('VyatkinaAElectricBundle:Default:counter.html.twig', [
-                    'counter' => $counter,
-                    'current_step' => $step
-                ]);
-
                 //check step cookies
                 if ($request->cookies->has($this->game_cookie)) {
+                    //old game
                     $game_id =$request->cookies->get($this->game_cookie);
                     //get progress from db
                     $game = $this->getDoctrine()
@@ -84,22 +82,48 @@ class DefaultController extends Controller
                     if (!$game) {
                         throw new \Exception('Game #'.$game_id.' not found', Response::HTTP_INTERNAL_SERVER_ERROR);
                     }
+                    $step = $game->getStep();
+                    //check
                     $old_fields_on = $game->getFieldsOn();
                     $new_fields_on = $arrData;
-                    $fields_save = array_merge(array_diff($old_fields_on, $new_fields_on), array_diff($new_fields_on, $old_fields_on));
-
+                    $fields_save = array_merge(
+                        array_diff($old_fields_on, $new_fields_on),
+                        array_diff($new_fields_on, $old_fields_on)
+                    );
                 } else {
+                    //new game
+                    $step = 0;
                     $game = new Steps();
                     $fields_save = $arrData;
                 }
+                $step = $step + 1;
                 $fields_save[] = $id;
+                if(count($fields_save) == $this->field_size*$this->field_size) $is_win = true;
+                if(!$is_win){
+                    [$fields_save, $joker] = $this->joker($fields_save);
+                }
                 $game->setStep($step);
                 $game->setFieldsOn($fields_save);
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($game);
                 $em->flush();
+                $counter = array_pad(str_split($step), -$this->counter_size, 0);
+                $counter_template = $this->renderView('VyatkinaAElectricBundle:Default:counter.html.twig', [
+                    'counter' => $counter,
+                    'current_step' => $step
+                ]);
+                $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig',[
+                    'field_size' => $this->field_size,
+                    'fields_on' => $fields_save
+                ]);
                 $response->headers->setCookie(new Cookie($this->game_cookie, $game->getId()));
-                $response->setContent(json_encode(['fields' => $arrData, 'step' => $step, 'counter_template' => $counter_template]));
+                $response->setContent(json_encode([
+                    'field_template' => $field_template,
+                    'step' => $step,
+                    'counter_template' => $counter_template,
+                    'is_win' => $is_win,
+                    'joker' => $joker
+                ]));
                 $response->setStatusCode(Response::HTTP_OK);
                 return $response;
             }else{
@@ -109,7 +133,7 @@ class DefaultController extends Controller
             return new JsonResponse(['error' => $ex->getMessage()], $ex->getCode());
         }
         } else {
-            throw new \HttpException("Request must be is ajax", Response::HTTP_METHOD_NOT_ALLOWED);
+            throw new HttpException("Request must be is ajax", Response::HTTP_METHOD_NOT_ALLOWED);
         }
     }
 
@@ -152,44 +176,19 @@ class DefaultController extends Controller
         return $result;
     }
 
-    public function jokerAction(Request $request)
+    private function joker($fields_on)
     {
-        if ($request->isXmlHttpRequest()) {
-            try {
-                if ($request->request->get('fields_on')) {
-                    if (rand(1, $this->joker_chance) == 1) {
-                        $fields_on = $request->request->get('fields_on');
-                        $rand_key = array_rand($request->request->get('fields_on'), 1);
-                        $joker = $fields_on[$rand_key];
-                        if ($request->cookies->has($this->game_cookie)) {
-                            $game_id = $request->cookies->get($this->game_cookie);
-                            $game = $this->getDoctrine()
-                                ->getRepository(Steps::class)
-                                ->find($game_id);
-                            if ($game) {
-                                $fields_save = $game->getFieldsOn();
-                                unset($fields_save[array_search($joker, $fields_save)]);
-                                $game->setFieldsOn($fields_save);
-                                $em = $this->getDoctrine()->getManager();
-                                $em->persist($game);
-                                $em->flush();
-                            }else{
-                                throw new \Exception('Game #'.$game_id.' not found', Response::HTTP_UNPROCESSABLE_ENTITY);
-                            }
-                        }else{
-                            throw new \Exception('Cookie game_step not found', Response::HTTP_UNPROCESSABLE_ENTITY);
-                        }
-                        return new JsonResponse(['answer' => true, 'joker' => $joker], Response::HTTP_OK);
-                    }else{
-                        return new JsonResponse(['answer' => false], Response::HTTP_OK);
-                    }
-                }
-                throw $this->createNotFoundException('Not given parameter fields_on');
-            }catch (\Exception $ex){
-                return new JsonResponse(['error' => $ex->getMessage()], $ex->getCode());
+        if ($fields_on) {
+            if (rand(1, $this->joker_chance) == 1) {
+                $rand_key = array_rand($fields_on, 1);
+                $joker = $fields_on[$rand_key];
+                unset($fields_on[$rand_key]);
+                return [$fields_on, $joker];
+            }else{
+                return [$fields_on, false];
             }
-        } else {
-            throw new \HttpException("Request must be is ajax", Response::HTTP_METHOD_NOT_ALLOWED);
+        }else{
+            throw new \Exception('No field', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -199,13 +198,21 @@ class DefaultController extends Controller
             try {
 
                 $response = new JsonResponse();
-                if(!$request->request->has('step')){
-                    throw $this->createNotFoundException('Not given parameter step');
+                if($request->cookies->has($this->game_cookie)){
+                    $game_id = $request->cookies->get($this->game_cookie);
+                    $game = $this->getDoctrine()
+                        ->getRepository(Steps::class)
+                        ->find($game_id);
+                    if(!$game){
+                        throw new \Exception('Game #'.$game_id.' not found', Response::HTTP_INTERNAL_SERVER_ERROR);
+                    }
+                }else{
+                    throw  new \Exception('Not found cookie game_step', Response::HTTP_INTERNAL_SERVER_ERROR);
                 }
+                $step = $game->getStep();
 
-                $step = $request->request->get('step');
                 if ($request->request->get('username')) {
-                    $em = $this->getDoctrine()->getManager();
+
                     if (!$request->cookies->has($this->user_cookie)) {
                         $user = new Users();
                         $user->setUsername($request->request->get('username'));
@@ -217,9 +224,11 @@ class DefaultController extends Controller
                             $user->setUsername($request->request->get('username'));
                         }
                     }
+
                     $result = new Results();
                     $result->setResult($step);
                     $result->setUserId($user);
+                    $em = $this->getDoctrine()->getManager();
                     $em->persist($user);
                     $em->persist($result);
                     $em->flush();
@@ -247,7 +256,7 @@ class DefaultController extends Controller
                 return new JsonResponse(['error' => $ex->getMessage()], $ex->getCode());
             }
         } else {
-            throw new \HttpException("Request must be is ajax", Response::HTTP_METHOD_NOT_ALLOWED);
+            throw new HttpException("Request must be is ajax", Response::HTTP_METHOD_NOT_ALLOWED);
         }
     }
 
@@ -263,7 +272,7 @@ class DefaultController extends Controller
             return $this->render('VyatkinaAElectricBundle:Default:best.html.twig',
                 ['results' => $results]);
         } else {
-            throw new \HttpException("Request must be is ajax", Response::HTTP_METHOD_NOT_ALLOWED);
+            throw new HttpException("Request must be is ajax", Response::HTTP_METHOD_NOT_ALLOWED);
         }
     }
 
@@ -289,7 +298,9 @@ class DefaultController extends Controller
                     'counter' => $this->start_counter,
                     'current_step' => $this->start_step
                 ]);
-                $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig');
+                $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig',[
+                    'field_size' => $this->field_size
+                ]);
 
                 $response->setContent(json_encode([
                     'field_template' => $field_template,
@@ -302,7 +313,7 @@ class DefaultController extends Controller
                 return new JsonResponse(['error' => $ex->getMessage()], $ex->getCode());
             }
         } else {
-            throw new \HttpException("Request must be is ajax", Response::HTTP_METHOD_NOT_ALLOWED);
+            throw new HttpException("Request must be is ajax", Response::HTTP_METHOD_NOT_ALLOWED);
         }
     }
 

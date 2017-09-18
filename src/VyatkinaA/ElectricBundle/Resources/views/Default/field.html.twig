@@ -2,7 +2,16 @@
     {% for i in 1..5 %}
         <div class="row">
             {% for k in 1..5 %}
-                <div id="{{ i }}{{ k }}" class="cell-field"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></div>
+                {%  set id = i ~ k %}
+                {% set class_on = '' %}
+                {% if fields_on is defined%}
+                    {% for field in fields_on %}
+                        {% if field == id %}
+                            {% set class_on = 'on' %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <div id="{{ i }}{{ k }}" class="cell-field {{ class_on }}"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></div>
             {% endfor %}
         </div>
     {% endfor %}

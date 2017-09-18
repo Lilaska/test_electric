@@ -37,11 +37,14 @@ $(document).ready(function()
 
     $('#new_game').on('click', newGame);
 
+    function getFieldsOn() {
+
+    }
+
     function fire(data, cell) {
         for (var i = 0; i < data.fields.length; i++) {
             $('#' + data.fields[i]).toggleClass('on');
         }
-        ;
         $(cell).addClass('on');
         updateCounter(data.counter_template);
     }
@@ -75,7 +78,7 @@ $(document).ready(function()
                             url: 'save',
                             data: {'step': step, 'username': username},
                             success: function () {
-                                alert('user saved');
+                                showModal('User saved successfully', 'Save');
                             },
                             dataType: "JSON"
                         }
@@ -133,6 +136,7 @@ $(document).ready(function()
         $('div.modal-body').html(content);
         $('h4.modal-title').html(title);
         $('.btn').html(buttons);
+        $('#close_btn').off('click');
         if(typeof clbk == 'function'){
             $('#close_btn').on('click', clbk);
         }

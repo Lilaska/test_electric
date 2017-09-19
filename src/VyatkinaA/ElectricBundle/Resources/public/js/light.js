@@ -18,7 +18,7 @@ $(document).ready(function()
                     fire(data);
                     if(data.is_win) is_win();
                     if(data.joker_id) {
-                        setTimeout(joker(data.joker_id), 100000);
+                        setTimeout(function(){joker(data.joker_id)}, 1000);
                     }
                 },
                 dataType: "JSON"

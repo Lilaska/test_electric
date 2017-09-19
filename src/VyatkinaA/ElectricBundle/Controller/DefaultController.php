@@ -19,7 +19,7 @@ class DefaultController extends Controller
     private $start_fields_on = [];
     private $counter_size = 5;
     private $field_size = 5;
-    private $joker_chance = 1; //1 k joker_chance
+    private $joker_chance = 25; //1 k joker_chance
     private $user_cookie = 'user_data';
     private $game_cookie = 'game_step';
     private $best_limit = 15;
@@ -27,18 +27,14 @@ class DefaultController extends Controller
     public function indexAction(Request $request)
     {
         try {
-            //get start params for new game
             $counter = $this->start_counter;
             $step = $this->start_step;
             $fields_on = $this->start_fields_on;
-            //check step cookies
             if ($request->cookies->has($this->game_cookie)) {
                 $game_id = $request->cookies->get($this->game_cookie);
-                //get progress from db
                 $game = $this->getDoctrine()
                     ->getRepository(Steps::class)
                     ->find($game_id);
-                //if game found
                 if ($game) {
                     $step = $game->getStep();
                     $counter = array_pad(str_split($step), -$this->counter_size, 0);
@@ -65,25 +61,18 @@ class DefaultController extends Controller
         try {
             $response = new JsonResponse();
             $is_win = false;
-            $joker = false;
-
             if ($request->request->has('id')) {
                 $id = $request->request->get('id');
                 $arrData = $this->calcFieldAction($id);
-                //check step cookies
                 if ($request->cookies->has($this->game_cookie)) {
-                    //old game
                     $game_id =$request->cookies->get($this->game_cookie);
-                    //get progress from db
                     $game = $this->getDoctrine()
                         ->getRepository(Steps::class)
                         ->find($game_id);
-                    //if game found
                     if (!$game) {
                         throw new \Exception('Game #'.$game_id.' not found', Response::HTTP_INTERNAL_SERVER_ERROR);
                     }
                     $step = $game->getStep();
-                    //check
                     $old_fields_on = $game->getFieldsOn();
                     $new_fields_on = $arrData;
                     $fields_on = array_merge(
@@ -91,7 +80,6 @@ class DefaultController extends Controller
                         array_diff($new_fields_on, $old_fields_on)
                     );
                 } else {
-                    //new game
                     $step = 0;
                     $game = new Steps();
                     $fields_on = $arrData;
@@ -101,19 +89,17 @@ class DefaultController extends Controller
                 if(count($fields_on) == $this->field_size*$this->field_size) $is_win = true;
                 if(!$is_win){
                     [$fields_save, $joker] = $this->joker($fields_on);
+                }else{
+                    $fields_save = $fields_on;
+                    $joker = false;
                 }
                 $game->setStep($step);
                 $game->setFieldsOn($fields_save);
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($game);
                 $em->flush();
-//                $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig',[
-//                    'field_size' => $this->field_size,
-//                    'fields_on' => $fields_save
-//                ]);
                 $response->headers->setCookie(new Cookie($this->game_cookie, $game->getId()));
                 $response->setContent(json_encode([
-//                    'field_template' => $field_template,
                     'fields_on' => $fields_on,
                     'step' => $step,
                     'counter_size' => $this->counter_size,
@@ -143,12 +129,9 @@ class DefaultController extends Controller
             }
             return false;
         };
-
         $result = [];
-
         if (!$check($id)) throw new \Exception('Given wrong id', Response::HTTP_INTERNAL_SERVER_ERROR);
         $temp = str_split($id);
-
 //main diagonal
         $item = ($temp[0] + 1) . ($temp[1] + 1);
         if ($check($item)) array_push($result, $item);
@@ -192,7 +175,6 @@ class DefaultController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             try {
-
                 $response = new JsonResponse();
                 if($request->cookies->has($this->game_cookie)){
                     $game_id = $request->cookies->get($this->game_cookie);
@@ -206,9 +188,7 @@ class DefaultController extends Controller
                     throw  new \Exception('Not found cookie game_step', Response::HTTP_INTERNAL_SERVER_ERROR);
                 }
                 $step = $game->getStep();
-
                 if ($request->request->get('username')) {
-
                     if (!$request->cookies->has($this->user_cookie)) {
                         $user = new Users();
                         $user->setUsername($request->request->get('username'));
@@ -220,7 +200,6 @@ class DefaultController extends Controller
                             $user->setUsername($request->request->get('username'));
                         }
                     }
-
                     $result = new Results();
                     $result->setResult($step);
                     $result->setUserId($user);
@@ -264,7 +243,6 @@ class DefaultController extends Controller
                 ->getRepository(Results::class)
                 ->findBy([], ['result' => 'ASC'], $this->best_limit);
 
-
             return $this->render('VyatkinaAElectricBundle:Default:best.html.twig',
                 ['results' => $results]);
         } else {
@@ -290,12 +268,8 @@ class DefaultController extends Controller
                         throw $this->createNotFoundException('Game #' . $game_id . 'not found');
                     }
                 }
-//                $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig',[
-//                    'field_size' => $this->field_size
-//                ]);
 
                 $response->setContent(json_encode([
-//                    'field_template' => $field_template,
                     'fields_on' => [],
                     'step' => $this->start_step,
                     'counter_size' => $this->counter_size

@@ -16,53 +16,56 @@
   box-sizing: unset;
 }
 
-.number.n1 div {
+div[figure="n1"] div {
   border-left-color: transparent;
   border-top-color: transparent;
   border-bottom-color: transparent;
 }
-.number.n2 .top {
+div[figure="n2"] .top {
   border-left-color: transparent;
 }
-.number.n2 .bottom {
+div[figure="n2"] .bottom {
   border-right-color: transparent;
 }
-.number.n3 div {
+div[figure="n3"] div {
   border-left-color: transparent;
 }
-.number.n4 .top {
+div[figure="n4"] .top {
   border-top-color: transparent;
 }
-.number.n4 .bottom {
+div[figure="n4"] .bottom {
   border-left-color: transparent;
   border-bottom-color: transparent;
 }
-.number.n5 .top {
+div[figure="n5"] .top {
   border-right-color: transparent;
 }
-.number.n5 .bottom {
+div[figure="n5"] .bottom {
   border-left-color: transparent;
 }
-.number.n6 .top {
+div[figure="n6"] .top {
   border-right-color: transparent;
   border-bottom-color: transparent;
 }
-.number.n7 .top {
+div[figure="n7"] .top {
   border-left-color: transparent;
   border-bottom-color: transparent;
 }
-.number.n7 .bottom {
+div[figure="n7"] .bottom {
   border-left-color: transparent;
   border-bottom-color: transparent;
   border-top-color: transparent;
 }
-.number.n9 .bottom {
+div[figure="n9"] .bottom {
   border-left-color: transparent;
 }
-.number.n0 .top {
+/*.number.n0 .top {*/
+div[figure="n0"] .top {
   border-bottom-color: transparent;
 }
-.number.n0 .bottom {
+/*.number.n0 .bottom {*/
+div[figure="n0"] .bottom {
+  border-top-color: transparent;
   border-top-color: transparent;
 }
 

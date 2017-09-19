@@ -19,7 +19,7 @@ class DefaultController extends Controller
     private $start_fields_on = [];
     private $counter_size = 5;
     private $field_size = 5;
-    private $joker_chance = 25; //1 k joker_chance
+    private $joker_chance = 1; //1 k joker_chance
     private $user_cookie = 'user_data';
     private $game_cookie = 'game_step';
     private $best_limit = 15;
@@ -55,7 +55,7 @@ class DefaultController extends Controller
                 ]
             );
         }catch (\Exception $ex){
-            throw new HttpException($ex->getMessage(), $ex->getCode() ?? 500);
+            throw new HttpException($ex->getMessage(), $ex->getCode());
         }
     }
 
@@ -86,7 +86,7 @@ class DefaultController extends Controller
                     //check
                     $old_fields_on = $game->getFieldsOn();
                     $new_fields_on = $arrData;
-                    $fields_save = array_merge(
+                    $fields_on = array_merge(
                         array_diff($old_fields_on, $new_fields_on),
                         array_diff($new_fields_on, $old_fields_on)
                     );
@@ -94,35 +94,31 @@ class DefaultController extends Controller
                     //new game
                     $step = 0;
                     $game = new Steps();
-                    $fields_save = $arrData;
+                    $fields_on = $arrData;
                 }
                 $step = $step + 1;
-                $fields_save[] = $id;
-                if(count($fields_save) == $this->field_size*$this->field_size) $is_win = true;
+                $fields_on[] = $id;
+                if(count($fields_on) == $this->field_size*$this->field_size) $is_win = true;
                 if(!$is_win){
-                    [$fields_save, $joker] = $this->joker($fields_save);
+                    [$fields_save, $joker] = $this->joker($fields_on);
                 }
                 $game->setStep($step);
                 $game->setFieldsOn($fields_save);
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($game);
                 $em->flush();
-                $counter = array_pad(str_split($step), -$this->counter_size, 0);
-                $counter_template = $this->renderView('VyatkinaAElectricBundle:Default:counter.html.twig', [
-                    'counter' => $counter,
-                    'current_step' => $step
-                ]);
-                $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig',[
-                    'field_size' => $this->field_size,
-                    'fields_on' => $fields_save
-                ]);
+//                $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig',[
+//                    'field_size' => $this->field_size,
+//                    'fields_on' => $fields_save
+//                ]);
                 $response->headers->setCookie(new Cookie($this->game_cookie, $game->getId()));
                 $response->setContent(json_encode([
-                    'field_template' => $field_template,
+//                    'field_template' => $field_template,
+                    'fields_on' => $fields_on,
                     'step' => $step,
-                    'counter_template' => $counter_template,
+                    'counter_size' => $this->counter_size,
                     'is_win' => $is_win,
-                    'joker' => $joker
+                    'joker_id' => $joker
                 ]));
                 $response->setStatusCode(Response::HTTP_OK);
                 return $response;
@@ -294,17 +290,15 @@ class DefaultController extends Controller
                         throw $this->createNotFoundException('Game #' . $game_id . 'not found');
                     }
                 }
-                $counter_template = $this->renderView('VyatkinaAElectricBundle:Default:counter.html.twig', [
-                    'counter' => $this->start_counter,
-                    'current_step' => $this->start_step
-                ]);
-                $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig',[
-                    'field_size' => $this->field_size
-                ]);
+//                $field_template = $this->renderView('VyatkinaAElectricBundle:Default:field.html.twig',[
+//                    'field_size' => $this->field_size
+//                ]);
 
                 $response->setContent(json_encode([
-                    'field_template' => $field_template,
-                    'counter_template' => $counter_template
+//                    'field_template' => $field_template,
+                    'fields_on' => [],
+                    'step' => $this->start_step,
+                    'counter_size' => $this->counter_size
                 ]));
                 $response->headers->setCookie(new Cookie($this->game_cookie, null, -1));
                 $response->setStatusCode(Response::HTTP_OK);

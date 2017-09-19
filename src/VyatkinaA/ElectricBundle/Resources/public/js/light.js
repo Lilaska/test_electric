@@ -17,7 +17,9 @@ $(document).ready(function()
                 success: function (data) {
                     fire(data);
                     if(data.is_win) is_win();
-                    if(data.joker) setTimeout(joker(data.joker), 3000);
+                    if(data.joker_id) {
+                        setTimeout(joker(data.joker_id), 100000);
+                    }
                 },
                 dataType: "JSON"
             });
@@ -31,19 +33,32 @@ $(document).ready(function()
     $('#new_game').on('click', newGame);
 
     function fire(data) {
-        updateField(data.field_template);
-        updateCounter(data.counter_template);
+        updateField(data.fields_on);
+        updateCounter(data.step, data.counter_size);
     }
 
-    function updateCounter(template) {
-        $('div.counter_place').html(template);
+    function updateCounter(step, counter_size) {
+        step = step.toString();
+        var counter = step.padStart(counter_size, '0').split("");
+        $.each($('.number'), function(index, value){
+            $(this).attr('figure', 'n'+counter[index]);
+        })
     }
 
-    function updateField(template) {
+    function updateField(fields_on) {
         // for (var i = 0; i < data.fields.length; i++) {
         //     $('#' + data.fields[i]).toggleClass('on');
         // }
-        $('div.field_place').html(template);
+        // $('div.field_place').html(template);
+        var cells = $('.cell-field');
+        $.each(cells, function(index, value){
+            var id = $(this).attr('id');
+            if(fields_on.includes(id)){
+                $(this).addClass('on');
+            }else{
+                $(this).removeClass('on');
+            }
+        })
     }
 
     function newGame(){
@@ -52,8 +67,8 @@ $(document).ready(function()
             url: 'new',
             // data: {'step': step, 'username': username},
             success: function (data) {
-                updateCounter(data.counter_template);
-                updateField(data.field_template);
+                updateCounter(data.step, data.counter_size);
+                updateField(data.fields_on);
 
             },
             dataType: "JSON"
@@ -92,8 +107,8 @@ $(document).ready(function()
         });
     }
 
-    function joker(joker) {
-        $('#' + joker).removeClass('on');
+    function joker(joker_id) {
+        $('#' + joker_id).removeClass('on');
     }
 
     function the_best() {
